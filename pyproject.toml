@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "briefproof"
+version = "0.1.0"
+description = "SerpApi paid-work discovery with requester-only discussion evidence"
+requires-python = ">=3.11"
+dependencies = []
+license = "MIT"
+
+[project.scripts]
+briefproof = "briefproof.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["briefproof*"]

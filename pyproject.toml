@@ -15,3 +15,6 @@ briefproof = "briefproof.__main__:main"
 
 [tool.setuptools.packages.find]
 include = ["briefproof*"]
+
+[tool.setuptools.package-data]
+briefproof = ["web.html"]

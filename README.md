@@ -12,6 +12,12 @@ The distinction matters: a freelancer's $500 quote is not the buyer's budget;
 today's seller reply does not make an old buyer active; an RFQ can explicitly say
 that no paid work is authorized. A search snippet alone cannot resolve these cases.
 
+[Watch the 60-second local browser demonstration](https://github.com/snehaapratap/briefproof/releases/download/v0.1.0/briefproof-demo.mp4).
+It records the actual local Python app through browser captures: live SerpApi
+discovery, exclusion of closed requests, and a full requester-budget check. It is
+silent, captured at two frames per second, and condensed between interactions.
+It does not show accepted work or earned money.
+
 ## Run locally
 
 Python 3.11 or later. The program has no runtime dependencies or model subscription.
@@ -21,6 +27,20 @@ From this directory, no installation is needed:
 python3 -m briefproof demo
 python3 -m unittest discover -s tests -v
 ```
+
+To use the same checks in a browser:
+
+```sh
+python3 -m briefproof.web
+```
+
+Open `http://127.0.0.1:8765`. The fictional examples work without a key. For live
+discovery, supply `SERPAPI_API_KEY` privately in the Python process environment
+before starting the server; never type a key into the browser or a visible command.
+The server binds only to loopback, rejects cross-origin requests and unexpected
+Host headers, uses a per-launch request token, and limits each session to eight
+SerpApi discovery requests. Each live run reads up to four discovered discussions.
+The interface also verifies a known topic and downloads the evidence as JSON.
 
 The offline demo uses **fictional** requests, with no network calls and no real
 earnings or client claims. It demonstrates a paid candidate, a filled position,
@@ -85,9 +105,18 @@ and agree scope, acceptance, AI use and payment before doing commissioned work.
 
 `core.py` holds the HTTPS client, SerpApi discovery, Discourse pagination, quote
 removal and requester-only assessment. `__main__.py` adds the CLI, bounded parallel
-topic inspection, offline demonstration and JSON export. The tests exercise late
+topic inspection, offline demonstration and JSON export. `web.py` and `web.html`
+provide the optional loopback browser interface. The tests exercise late
 closures, seller prices, stale buyers, incomplete replies, unfunded requests,
-credential-safe errors and URL/redirect restrictions.
+credential-safe errors, URL/redirect restrictions, browser request boundaries,
+key privacy and the local discovery-request limit.
+
+On 5 October 2026, all 30 tests passed. Actual SerpApi discovery was exercised
+through both CLI and browser modes. Searches returned weak matches, closed jobs
+and an empty exact-title match; the tool reported those outcomes without inventing
+opportunities. Direct-topic checks read all 70 posts of a workflow-repair request
+and all 61 posts of a WordPress/Make/Brevo request. The latter's original requester
+advertises approximately USD25/hour; current hiring and payment are unconfirmed.
 
 The read-only client accepts only its three known service hosts, rejects credentials
 in source URLs and unexpected ports, blocks redirects to other hosts, bounds
@@ -104,9 +133,10 @@ tests and documentation under the participant's instructions. Its use must be
 disclosed in any hackathon entry. This is an AI-assisted project; no past client
 deployment or human-only authorship is claimed.
 
-Submission status: not submitted. A real SerpApi run and a public video showing
-the program running locally are required before representing the entry as ready.
-Winning and payment are not guaranteed.
+Submission status: a draft entry was saved on 5 October 2026. Live SerpApi testing
+and the local demo recording are complete. Final submission remains pending;
+winning and payment are not guaranteed. A repository or release does not itself
+constitute a competition entry.
 
 Official references:
 

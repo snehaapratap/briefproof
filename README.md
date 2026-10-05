@@ -133,10 +133,11 @@ tests and documentation under the participant's instructions. Its use must be
 disclosed in any hackathon entry. This is an AI-assisted project; no past client
 deployment or human-only authorship is claimed.
 
-Submission status: a draft entry was saved on 5 October 2026. Live SerpApi testing
-and the local demo recording are complete. Final submission remains pending;
-winning and payment are not guaranteed. A repository or release does not itself
-constitute a competition entry.
+Submission status: the organizer's participant dashboard confirmed **Submitted,
+5 October 2026 at 11:25 AM IST**, in the Knowledge & Public Interest track.
+Live SerpApi testing and the public local-demo recording are complete. This
+confirms receipt of an entry, not judging eligibility, selection or a cash award.
+Winning and payment are not guaranteed.
 
 Official references:
 

@@ -1,162 +1,125 @@
 # BriefProof
 
-**5 October 2026 update:** automated Make/n8n forum fetching is now disabled.
-Both forums' published terms restrict automated access. SerpApi discovery returns
-unverified links for manual review; it does not produce live audited candidates.
-The offline fictional examples and evidence classifier still work. The earlier
-demo video and v0.1.0 release document behavior before this restriction was
-identified; use the corrected main branch and do not use that release to fetch
-the forums. This is not currently offered as a paid automated forum auditor.
+An AI-assisted, MIT-licensed Python project for classifying paid-work evidence.
+The offline examples show how to distinguish requester budgets, filled requests,
+unfunded work and seller advertisements.
 
-Sources: [Make forum terms](https://community.make.com/tos),
+## Current status
+
+Automated Make/n8n forum fetching is disabled because both forums' published
+terms restrict automated access. SerpApi discovery returns **unverified links**;
+it does not read the discussions or produce audited live candidates. The earlier
+commercial automated-auditor offer is withdrawn.
+
+Policy sources: [Make forum terms](https://community.make.com/tos) and
 [n8n forum terms](https://community.n8n.io/tos), Acceptable Use item 5.
 
-The design and historical validation below describe the original implementation.
-Live forum verification commands are unavailable in the corrected version.
+## Try the offline examples
 
-Find a paid-work request. Check whether it is actually a buyer, whether the buyer
-mentions payment, and whether a later reply says the position is filled.
-
-BriefProof is a read-only Python tool for people looking for small Make/n8n
-automation projects. SerpApi Google Search supplies the current discovery results.
-The tool then reads the original public community discussions, including replies
-outside the initial page, before suggesting which requests deserve a manual check.
-
-The distinction matters: a freelancer's $500 quote is not the buyer's budget;
-today's seller reply does not make an old buyer active; an RFQ can explicitly say
-that no paid work is authorized. A search snippet alone cannot resolve these cases.
-
-[Watch the 60-second local browser demonstration](https://github.com/snehaapratap/briefproof/releases/download/v0.1.0/briefproof-demo.mp4).
-It records the actual local Python app through browser captures: live SerpApi
-discovery, exclusion of closed requests, and a full requester-budget check. It is
-silent, captured at two frames per second, and condensed between interactions.
-It does not show accepted work or earned money.
-
-## Run locally
-
-Python 3.11 or later. The program has no runtime dependencies or model subscription.
-From this directory, no installation is needed:
+Use Python 3.11 or later. The project uses the Python standard library and needs
+no runtime package installation. From the repository directory:
 
 ```sh
 python3 -m briefproof demo
-python3 -m unittest discover -s tests -v
 ```
 
-To use the same checks in a browser:
+The four fictional cases are:
+
+- A requester advertises a small paid repair; a seller's larger quote does not
+  replace the requester budget.
+- A requester says a paid test is filled; a later seller reply does not reopen it.
+- A requester asks for estimates but has not authorized paid work.
+- The original author advertises a service rather than commissioning work.
+
+These examples make no network calls. Their clients, budgets and evidence are
+fictional. To export the same examples as JSON:
+
+```sh
+python3 -m briefproof demo --output reports/demo.json
+```
+
+The report identifies its mode and sets `fictional` to `true`. Its timestamps
+record the demo run, not activity by real buyers.
+
+## Local browser interface
 
 ```sh
 python3 -m briefproof.web
 ```
 
-Open `http://127.0.0.1:8765`. The fictional examples work without a key. For live
-discovery, supply `SERPAPI_API_KEY` privately in the Python process environment
-before starting the server; never type a key into the browser or a visible command.
-The server binds only to loopback, rejects cross-origin requests and unexpected
-Host headers, uses a per-launch request token, and limits each session to eight
-SerpApi discovery requests. Each live run reads up to four discovered discussions.
-The interface also verifies a known topic and downloads the evidence as JSON.
+Open `http://127.0.0.1:8765`. The fictional demo works without a key. The interface
+can display the report and download it as JSON. The server binds to loopback and
+requires same-origin requests with a token generated for each launch.
 
-The offline demo uses **fictional** requests, with no network calls and no real
-earnings or client claims. It demonstrates a paid candidate, a filled position,
-an unauthorized RFQ, and a seller advertisement.
+Optional search requires a SerpApi key in the Python process environment. Keep
+it private; the interface does not ask you to enter it in the browser. Each
+server session allows up to eight search attempts and requests up to four links
+per search. These links remain unverified. The verification mode is unavailable.
 
-For live discovery, use a verified SerpApi account and its API key:
+## Optional SerpApi discovery
 
-```sh
-python3 -m briefproof search "paid Make workflow repair" --ask-key --limit 6
-```
-
-`--ask-key` hides your key while typing and avoids putting it in shell history.
-Alternatively set `SERPAPI_API_KEY` privately in your own environment. Do not put
-a key in a screenshot, recording, repository, command argument, or report.
-
-A single search command makes one SerpApi search, then reads up to ten public
-topics. The free account advertises 250 searches monthly; account verification
-and the provider's current limits apply. SerpApi is essential to discovery, rather
-than a cosmetic call: its organic results determine which live discussions are
-inspected. The offline demo is a separate mode and never claims to exercise SerpApi.
-
-You can audit a known public topic without spending a SerpApi search:
+Use a verified SerpApi account with an available search allowance. Provider
+limits and charges apply; no API credits are included with this project. The
+CLI can prompt for the key without placing it in the command or shell history:
 
 ```sh
-python3 -m briefproof verify "https://community.make.com/t/your-topic/123"
+python3 -m briefproof search "paid automation repair" --ask-key --limit 4 --output reports/search.json
 ```
 
-Replace that illustrative URL with an actual topic. Only HTTPS topic URLs on
-`community.make.com` and `community.n8n.io` are supported.
+Alternatively, provide `SERPAPI_API_KEY` privately in the process environment.
+Never put a key in a repository, screenshot, recording, command argument or
+report.
 
-To keep an evidence record:
+Discovery searches for Make/n8n topic links through SerpApi. It returns titles,
+URLs and a search identifier where available, without fetching either forum.
+CLI results are limited to 1–10 links, with six by default. Search records have
+`unverified` status and no requester or discussion evidence. An organic-result
+title or advertised amount does not establish a current buyer, agreed budget,
+funded order or payment.
+
+The `verify` command is retained for compatibility but returns the forum-access
+notice before any forum network request. Legacy `--max-posts` and `--max-age`
+options do not enable fetching or turn discovery links into verified evidence.
+
+## How the classifier works
+
+`briefproof.core.assess` operates on evidence supplied to it. The CLI and browser
+demo supply fictional records; there is no general file-import workflow.
+
+The classifier uses explicit text rules rather than an LLM. It separates the
+original requester's statements from seller replies and excludes quotations
+and code from those statements. It records requester amounts, requester activity
+and closure/authorization signals independently.
+
+Possible decisions include `candidate`, `closed`, `not_authorized`,
+`seller_offer`, `stale`, `incomplete` and `unverified`. A candidate means the
+supplied requester evidence expresses buying intent and payment. It still
+requires confirmation of availability, identity, scope, AI-use conditions and
+funding. Rule-based classification can miss wording, negation or context.
+
+The project does not contact buyers, accept jobs, verify funding or collect
+payments. CSV export and saved presets proposed for a possible paid service
+have not been built.
+
+## Checks
 
 ```sh
-python3 -m briefproof search "paid n8n API integration" --ask-key --output reports/leads.json
+python3 -m unittest discover -s tests -v
 ```
 
-Reports contain requester-authored evidence links, short excerpts, discussion
-coverage and separate requester/forum activity dates. Reports do not include
-the API key; the `reports/` directory is ignored by Git.
+After the forum-access correction on 5 October 2026, 32 tests passed. They cover
+requester evidence, later closures, seller quotes, incomplete records, credential
+handling, network restrictions and local browser request boundaries. The
+6 October README refresh was checked against CLI help and an actual offline
+four-case JSON export. No live search or forum request was run for that refresh.
 
-## What the decisions mean
+## Historical demonstration
 
-- **Candidate:** requester expresses buying intent and payment, and the complete
-  discussion was read. This is still a lead: hiring, fit, scope and payment are unconfirmed.
-- **Closed:** the platform says closed/archived, or the requester says filled/resolved.
-- **Not authorized:** requester says unpaid, unfunded, or no paid work authorized.
-- **Seller offer:** the original author advertises services rather than commissioning them.
-- **Stale:** the requester's last post is older than the chosen age limit (default 30 days).
-- **Incomplete/unverified:** not enough primary evidence was read to recommend the request.
+The [v0.1.0 demo video](https://github.com/snehaapratap/briefproof/releases/download/v0.1.0/briefproof-demo.mp4)
+shows behavior before the forum-access restriction was identified. It is a
+historical recording, not a demonstration of the current supported workflow.
+Use the corrected main branch and the instructions above.
 
-Only the original requester's posts supply budgets and closure signals. Quoted
-text and code are excluded. Seller replies cannot supply a buyer budget or
-refresh the buyer's activity. Reads are bounded (300 posts by default) and a
-truncated discussion stays incomplete. No messages are sent and no job is accepted.
+## License
 
-The classifier uses explicit text rules, not an LLM. It can miss phrasing, sarcasm,
-negations, off-site hiring and private closures. It does not verify the buyer's
-identity, funding, payment history or willingness to hire you. Review linked evidence
-and agree scope, acceptance, AI use and payment before doing commissioned work.
-
-## Architecture and checks
-
-`core.py` holds the HTTPS client, SerpApi discovery, Discourse pagination, quote
-removal and requester-only assessment. `__main__.py` adds the CLI, bounded parallel
-topic inspection, offline demonstration and JSON export. `web.py` and `web.html`
-provide the optional loopback browser interface. The tests exercise late
-closures, seller prices, stale buyers, incomplete replies, unfunded requests,
-credential-safe errors, URL/redirect restrictions, browser request boundaries,
-key privacy and the local discovery-request limit.
-
-On 5 October 2026, all 30 tests passed. Actual SerpApi discovery was exercised
-through both CLI and browser modes. Searches returned weak matches, closed jobs
-and an empty exact-title match; the tool reported those outcomes without inventing
-opportunities. Direct-topic checks read all 70 posts of a workflow-repair request
-and all 61 posts of a WordPress/Make/Brevo request. The latter's original requester
-advertises approximately USD25/hour; current hiring and payment are unconfirmed.
-
-The read-only client accepts only its three known service hosts, rejects credentials
-in source URLs and unexpected ports, blocks redirects to other hosts, bounds
-response sizes and avoids logging credential-bearing URLs. It respects HTTP failures
-instead of bypassing login or challenges. It never reads a browser session.
-
-## SerpApi India Hackathon
-
-Intended track: **Knowledge & Public Interest** (paid-work information literacy).
-This project began on 5 October 2026 and was not a pre-existing project.
-
-**AI disclosure:** OpenAI Codex generated and revised the Python implementation,
-tests and documentation under the participant's instructions. Its use must be
-disclosed in any hackathon entry. This is an AI-assisted project; no past client
-deployment or human-only authorship is claimed.
-
-Submission status: the organizer's participant dashboard confirmed **Submitted,
-5 October 2026 at 11:25 AM IST**, in the Knowledge & Public Interest track.
-Live SerpApi testing and the public local-demo recording are complete. This
-confirms receipt of an entry, not judging eligibility, selection or a cash award.
-Winning and payment are not guaranteed.
-
-Official references:
-
-- [Google Search API](https://serpapi.com/search-api)
-- [Event rules](https://serpapi.github.io/serpapi-india-hackathon-2026/rules.html)
-- [Submission dashboard](https://serpapi.github.io/serpapi-india-hackathon-2026/submit.html)
-
-MIT licensed.
+[MIT](LICENSE).

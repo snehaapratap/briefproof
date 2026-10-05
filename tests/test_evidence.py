@@ -105,6 +105,14 @@ class EvidenceTests(unittest.TestCase):
 
 
 class NetworkingTests(unittest.TestCase):
+    def test_forum_requests_are_blocked_before_any_network_access(self):
+        for host in ("community.make.com", "community.n8n.io"):
+            client = PublicClient()
+            with self.subTest(host=host), patch.object(client.opener, "open") as network:
+                with self.assertRaisesRegex(FetchError, "forum fetching is disabled"):
+                    verify(f"https://{host}/t/123", client)
+                network.assert_not_called()
+
     def test_topic_urls_reject_private_hosts_ports_and_credentials(self):
         bad = ["http://community.make.com/t/123", "https://localhost/t/123", "https://127.0.0.1/t/123",
                "https://community.make.com.evil.invalid/t/123", "https://user@community.make.com/t/123",

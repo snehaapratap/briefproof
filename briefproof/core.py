@@ -16,6 +16,10 @@ from urllib.request import HTTPRedirectHandler, Request, build_opener
 COMMUNITIES = {"community.make.com", "community.n8n.io"}
 NETWORK_HOSTS = COMMUNITIES | {"serpapi.com"}
 MAX_BYTES = 5_000_000
+FORUM_ACCESS_NOTICE = (
+    "Automated Make/n8n forum fetching is disabled because their published terms "
+    "restrict automated access. Search results remain unverified; review them manually."
+)
 
 
 class FetchError(RuntimeError):
@@ -40,6 +44,8 @@ class PublicClient:
         if (parsed.scheme != "https" or parsed.hostname not in NETWORK_HOSTS
                 or parsed.username or parsed.password or parsed.port not in (None, 443)):
             raise FetchError("Only the supported public HTTPS services may be queried.")
+        if parsed.hostname in COMMUNITIES:
+            raise FetchError(FORUM_ACCESS_NOTICE)
         request = Request(url, headers={"User-Agent": "BriefProof/0.1 (+read-only public topic audit)",
                                         "Accept": "application/json"})
         for attempt in range(2):

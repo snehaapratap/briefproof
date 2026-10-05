@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 import sys
 
-from .core import FetchError, Lead, PublicClient, assess, discover, verify
+from .core import FORUM_ACCESS_NOTICE, FetchError, Lead, PublicClient, assess, discover, verify
 
 
 def demo_leads():
@@ -58,9 +58,9 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description="BriefProof — search for paid work, then check requester evidence.")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("demo", help="Run clearly marked fictional examples without a key or network.")
-    check = sub.add_parser("verify", help="Read a public Make/n8n topic without a SerpApi search.")
+    check = sub.add_parser("verify", help="Unavailable: automated forum fetching is disabled.")
     check.add_argument("url")
-    search = sub.add_parser("search", help="Discover topics with SerpApi Google Search, then inspect the discussions.")
+    search = sub.add_parser("search", help="Discover unverified topic links with SerpApi Google Search.")
     search.add_argument("query", help='For example: "paid Make workflow repair"')
     search.add_argument("--limit", type=int, default=6, choices=range(1, 11), metavar="1..10")
     search.add_argument("--ask-key", action="store_true", help="Enter a key privately, without putting it in shell history.")
@@ -84,12 +84,9 @@ def main(argv=None):
                 parser.error("Set SERPAPI_API_KEY privately, or add --ask-key. Use demo to try without a key.")
             results, search_id = discover(args.query, key, client, limit=args.limit)
             key = ""  # Do not retain or write credentials after discovery.
-            print(f"BRIEFPROOF / LIVE SERPAPI SEARCH — inspecting {len(results)} public topics")
+            print(f"BRIEFPROOF / LIVE SERPAPI SEARCH — {len(results)} unverified links; forum fetching disabled")
             def inspect(result):
-                try:
-                    lead = verify(result["url"], PublicClient(), max_posts=args.max_posts, max_age=args.max_age)
-                except (FetchError, ValueError, KeyError, TypeError):
-                    lead = Lead(result["title"], result["url"], reason="Could not complete primary-source inspection.")
+                lead = Lead(result["title"], result["url"], reason=FORUM_ACCESS_NOTICE)
                 lead.discovery_query = args.query
                 return lead
             with ThreadPoolExecutor(max_workers=3) as pool:

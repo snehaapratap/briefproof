@@ -11,7 +11,7 @@ import secrets
 import threading
 
 from .__main__ import demo_leads
-from .core import FetchError, Lead, PublicClient, discover, verify
+from .core import FORUM_ACCESS_NOTICE, FetchError, Lead, PublicClient, discover, verify
 
 
 def run_check(payload: dict, key: str) -> dict:
@@ -29,10 +29,7 @@ def run_check(payload: dict, key: str) -> dict:
             raise ValueError("The server needs SERPAPI_API_KEY for live discovery. Offline demo still works.")
         results, search_id = discover(query, key, PublicClient(), limit=4)
         def inspect(result):
-            try:
-                lead = verify(result["url"], PublicClient())
-            except (FetchError, ValueError, KeyError, TypeError):
-                lead = Lead(result["title"], result["url"], reason="Could not complete primary-source inspection.")
+            lead = Lead(result["title"], result["url"], reason=FORUM_ACCESS_NOTICE)
             lead.discovery_query = query
             return lead
         with ThreadPoolExecutor(max_workers=3) as pool:

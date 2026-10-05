@@ -5,10 +5,20 @@ import unittest
 from http.server import ThreadingHTTPServer
 from unittest.mock import patch
 
-from briefproof.web import make_handler
+from briefproof.web import make_handler, run_check
 
 
 class BrowserBoundaryTests(unittest.TestCase):
+    def test_search_returns_unverified_links_without_forum_reads(self):
+        with patch("briefproof.web.discover", return_value=([
+            {"title": "Possible request", "url": "https://community.n8n.io/t/123"}
+        ], "test-search")), patch("briefproof.web.verify") as forum:
+            result = run_check({"mode": "search", "query": "paid repair"}, "private-test-key")
+            forum.assert_not_called()
+            self.assertEqual(result["leads"][0]["status"], "unverified")
+            self.assertFalse(result["leads"][0]["complete_thread"])
+            self.assertIn("forum fetching is disabled", result["leads"][0]["reason"])
+
     def setUp(self):
         self.server = ThreadingHTTPServer(("127.0.0.1", 0), make_handler("private-test-key", "local-test-token"))
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)

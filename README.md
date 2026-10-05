@@ -1,5 +1,19 @@
 # BriefProof
 
+**5 October 2026 update:** automated Make/n8n forum fetching is now disabled.
+Both forums' published terms restrict automated access. SerpApi discovery returns
+unverified links for manual review; it does not produce live audited candidates.
+The offline fictional examples and evidence classifier still work. The earlier
+demo video and v0.1.0 release document behavior before this restriction was
+identified; use the corrected main branch and do not use that release to fetch
+the forums. This is not currently offered as a paid automated forum auditor.
+
+Sources: [Make forum terms](https://community.make.com/tos),
+[n8n forum terms](https://community.n8n.io/tos), Acceptable Use item 5.
+
+The design and historical validation below describe the original implementation.
+Live forum verification commands are unavailable in the corrected version.
+
 Find a paid-work request. Check whether it is actually a buyer, whether the buyer
 mentions payment, and whether a later reply says the position is filled.
 
